@@ -5,7 +5,7 @@ import base64
 import numpy as np
 
 async def receive_video():
-    uri = "ws://localhost:8765"
+    uri = "ws://localhost:8000/ws/0"
 
     async with websockets.connect(uri) as websocket:
         while True:

@@ -17,7 +17,7 @@ from face_model import MobileFaceNet
 from facebank import load_facebank
 from torchvision import transforms as trans
 from PIL import Image, ImageDraw, ImageFont
-
+from websockets.server import serve
 
 # ================================================================
 # LOAD FACE MODEL 
@@ -136,10 +136,29 @@ def process_frame(frame, targets, names,schedule_id):
 
 # ================================================================
 # WEBSOCKET VIDEO STREAM FUNCTION
-async def video_stream(websocket, camera_url, targets, names,schedule_id):
+async def video_stream(websocket,path):
+
+    path = websocket.path  # VD: /ws/101
+    socekt_id = path.split("/")[-1]  # lấy ID lớp từ path
+
+    classroom_info = classrooms_info.get(socekt_id)
+    if not classroom_info:
+        print(f"❌ Không tìm thấy lớp học {socekt_id}")
+        await websocket.close()
+        return
+
+    print(f"✅ WebSocket đến lớp: {socekt_id} từ {websocket.remote_address}")
+
+    schedule_id = classroom_info["schedule_id"]
+    class_id = classroom_info["class_id"]
+    camera_url = classroom_info["camera_url"]
+
+    targets, names = get_pytorch_embedding(class_id)
+    init_attendace(schedule_id)
     print(f"✅ New WebSocket connection from {websocket.remote_address} for camera: {camera_url}")
     # cap = cv2.VideoCapture('http://192.168.1.150:81/stream')
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(camera_url)
     
     if not cap.isOpened():
         print(f"❌ Error: Cannot open video stream {camera_url}")
@@ -179,8 +198,6 @@ async def video_stream(websocket, camera_url, targets, names,schedule_id):
 
 # ================================================================
 # START MULTIPLE WEBSOCKET SERVERS FOR EACH CAMERA
-async def start_server( camera_url, class_id,schedule_id, port):
-    print(f"🚀 Starting WebSocket server for {camera_url} on ws://0.0.0.0:{port}")
     targets,names=get_pytorch_embedding(class_id)
     init_attendace(schedule_id)
     print("init_attendace successful")
@@ -188,27 +205,15 @@ async def start_server( camera_url, class_id,schedule_id, port):
     async with websockets.serve(partial(video_stream, camera_url=camera_url, targets=targets, names=names,schedule_id=schedule_id), "0.0.0.0", port):
         await asyncio.Future()  # Keep server running
 
+
 async def main():
-    tasks = []
-    start_port = 8765  # Start from port 8765
-    for idx, (socket_id, classroom_info) in enumerate(classrooms_info.items()):
-        schedule_id=classroom_info["schedule_id"]
-        print('schedule id:',schedule_id)
-        camera_url = classroom_info["camera_url"]
-        print('camera_url:',camera_url)
- 
-        class_id=classroom_info["class_id"] # CHANGE THISS TO QUERY
-        port = start_port + 2  # Assign a different port for each camera
-
-        tasks.append(start_server( camera_url=camera_url, class_id=class_id,schedule_id=schedule_id, port=port))
-
-    if tasks:
-        await asyncio.gather(*tasks)
-    else:
-        print("⚠️ No cameras available to start WebSocket servers.")
+    print("🚀 Khởi động WebSocket server duy nhất trên ws://0.0.0.0:8765")
+    async with serve(video_stream, "0.0.0.0", 11000):
+        await asyncio.Future()
 
 if __name__ == "__main__":
     try:
+
         asyncio.run(main())
     except KeyboardInterrupt:
         print("👋 Server stopped manually.")
