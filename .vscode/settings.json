@@ -18,5 +18,6 @@
         "titleBar.inactiveBackground": "#4081b299",
         "titleBar.inactiveForeground": "#e7e7e799"
     },
-    "peacock.color": "4081b2"
+    "peacock.color": "4081b2",
+    "idf.pythonInstallPath": "/home/dong/anaconda3/bin/python"
 }

@@ -1,5 +1,7 @@
 import asyncio
 from datetime import datetime
+import datetime as dt
+import io
 import sys
 import os
 sys.path.append(os.path.join(sys.path[0], 'MTCNN'))
@@ -32,7 +34,7 @@ test_transform = trans.Compose([
     trans.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 ])
 
-# ✅ Fetch latest schedule and camera mappings
+# FETCH LATEST SCHEDULE AND CAMERA MAPPINGS
 nearest_schedules = get_all_classes_in_next_2_hours()
 classrooms_info = defaultdict(dict)
 print(nearest_schedules)
@@ -53,18 +55,18 @@ detected_student_ids = set()
 #===================SAVE THE IMAGE FOLDER=========================
 def create_evidence_image_url(schedule_id,student_id):
     BASE_VIDEO_DIR = "evidence_image"
-    today = datetime.now()  # Lấy ngày hiện tại
-    date_folder = today.strftime("%Y/%m/%d")  # Tạo thư mục theo format YYYY/MM/DD
+    today = datetime.now()  # get the current date time
+    date_folder = today.strftime("%Y/%m/%d")  # create folder with struct YYYY/MM/DD
 
-    # Tạo đường dẫn thư mục đầy đủ
+    # create full path
     full_folder_path = os.path.join(BASE_VIDEO_DIR, date_folder)
-    os.makedirs(full_folder_path, exist_ok=True)  # Tạo thư mục nếu chưa tồn tại
+    os.makedirs(full_folder_path, exist_ok=True)  # create path if not exist
 
     # Tạo đường dẫn file video (relative path)
-    video_filename = f"{schedule_id}_{student_id}.jpg"
+    video_filename = f"{schedule_id}_{student_id}.jpg" #set image schedule_id_student_id
     relative_video_path = os.path.join(full_folder_path, video_filename)
 
-    return relative_video_path  # Trả về đường dẫn tương đối để lưu vào DB
+    return relative_video_path  # return the image path with name
 
 
 
@@ -80,9 +82,7 @@ def process_frame(frame, targets, names,schedule_id):
                                              p_model_path='MTCNN/weights/pnet_Weights',
                                              r_model_path='MTCNN/weights/rnet_Weights',
                                              o_model_path='MTCNN/weights/onet_Weights')
-        # print('fond face',bboxes)
         if len(bboxes) > 0:
-            # print('fond face2',bboxes)
 
             faces = [frame[int(b[1]):int(b[3]), int(b[0]):int(b[2])] for b in bboxes]
             embs = [detect_model(test_transform(cv2.resize(face, (112, 112))).to(device).unsqueeze(0)) for face in faces]
@@ -100,8 +100,9 @@ def process_frame(frame, targets, names,schedule_id):
             font = ImageFont.truetype("utils/times.ttf", 30)
             
             box = bboxes[0]
+            student_name=names[index][1].split('-')
             draw.rectangle([(box[0], box[1]), (box[2], box[3])], outline="blue", width=3)
-            draw.text((box[0], box[1] - 25), names[index][1], fill=(255, 255, 0), font=font)
+            draw.text((box[0], box[3] - 0), f"{student_name[0]}\n{student_name[1]}", fill=(255, 255, 0), font=font)
             
             student_id = names[index][0]
 
@@ -159,27 +160,34 @@ async def video_stream(websocket,path):
     # cap = cv2.VideoCapture('http://192.168.1.150:81/stream')
     # cap = cv2.VideoCapture(0)
     cap = cv2.VideoCapture(camera_url)
-    
+    # dt.time.sleep(2)  # cho ESP32-CAM kịp gửi frame
     if not cap.isOpened():
         print(f"❌ Error: Cannot open video stream {camera_url}")
         return
 
     try:
         while cap.isOpened():
+            for _ in range(4): cap.read()  # Bỏ các frame bị đọng
             ret, frame = cap.read()
             if not ret or frame is None or frame.size == 0:
                 print(f"⚠️ Warning: Empty frame captured from {camera_url}; skipping")
                 continue
-            rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
             processed_frame, json_result = process_frame(frame=rotated_frame, targets=targets, names=names,schedule_id=schedule_id)
             processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
-
-            success, buffer = cv2.imencode(".jpg", processed_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
-            if not success:
-                print(f"❌ Error: Failed to encode image from {camera_url}")
-                continue
-
-            encoded_frame = base64.b64encode(buffer).decode("utf-8")
+            resized_frame = cv2.resize(processed_frame, (240, 320))  # (width, height)
+            image = Image.fromarray(resized_frame)
+            buffer = io.BytesIO()
+            image.save(buffer, format="JPEG", quality=30)
+            jpeg_bytes = buffer.getvalue()
+            encoded_frame = base64.b64encode(jpeg_bytes).decode('utf-8')
+            # success, buffer = cv2.imencode(".jpg", resized_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
+            # if not success:
+            #     print(f"❌ Error: Failed to encode image from {camera_url}")
+            #     continue
+            
+            # encoded_frame = base64.b64encode(buffer).decode("utf-8")
+            print('encoded_framee',encoded_frame)
             try:
                 await websocket.send(encoded_frame)
             except websockets.exceptions.ConnectionClosed as e:
