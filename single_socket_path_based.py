@@ -124,14 +124,14 @@ def process_frame(frame, targets, names,schedule_id):
                         cv2.imwrite(image_path, processed_frame)
                         print(f"📸 Ảnh lưu thành công tại: {image_path}")
                     except Exception as e:
-                        print(f"❌ Lỗi khi lưu ảnh: {e}")
+                        print(f"Lỗi khi lưu ảnh: {e}")
 
                 attencace_student(schedule_id=schedule_id,student_id=student_id,image_path=image_path)
                 detected_student_ids.add(student_id)
 
             return processed_frame, json.dumps(result)
     except Exception as e:
-        print(f"❌ Error detecting face: {e}")
+        print(f"Error detecting face: {e}")
 
     return frame, "[]"
 
@@ -144,11 +144,11 @@ async def video_stream(websocket,path):
 
     classroom_info = classrooms_info.get(socekt_id)
     if not classroom_info:
-        print(f"❌ Không tìm thấy lớp học {socekt_id}")
+        print(f"Không tìm thấy lớp học {socekt_id}")
         await websocket.close()
         return
-
-    print(f"✅ WebSocket đến lớp: {socekt_id} từ {websocket.remote_address}")
+    
+    print(f"WebSocket đến lớp: {socekt_id} từ {websocket.remote_address}")
 
     schedule_id = classroom_info["schedule_id"]
     class_id = classroom_info["class_id"]
@@ -156,13 +156,13 @@ async def video_stream(websocket,path):
 
     targets, names = get_pytorch_embedding(class_id)
     init_attendace(schedule_id)
-    print(f"✅ New WebSocket connection from {websocket.remote_address} for camera: {camera_url}")
+    print(f"New WebSocket connection from {websocket.remote_address} for camera: {camera_url}")
     # cap = cv2.VideoCapture('http://192.168.1.150:81/stream')
     # cap = cv2.VideoCapture(0)
     cap = cv2.VideoCapture(camera_url)
     # dt.time.sleep(2)  # cho ESP32-CAM kịp gửi frame
     if not cap.isOpened():
-        print(f"❌ Error: Cannot open video stream {camera_url}")
+        print(f"Error: Cannot open video stream {camera_url}")
         return
 
     try:
@@ -170,7 +170,7 @@ async def video_stream(websocket,path):
             for _ in range(4): cap.read()  # Bỏ các frame bị đọng
             ret, frame = cap.read()
             if not ret or frame is None or frame.size == 0:
-                print(f"⚠️ Warning: Empty frame captured from {camera_url}; skipping")
+                print(f"Warning: Empty frame captured from {camera_url}; skipping")
                 continue
             rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
             processed_frame, json_result = process_frame(frame=rotated_frame, targets=targets, names=names,schedule_id=schedule_id)
@@ -181,28 +181,22 @@ async def video_stream(websocket,path):
             image.save(buffer, format="JPEG", quality=30)
             jpeg_bytes = buffer.getvalue()
             encoded_frame = base64.b64encode(jpeg_bytes).decode('utf-8')
-            # success, buffer = cv2.imencode(".jpg", resized_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
-            # if not success:
-            #     print(f"❌ Error: Failed to encode image from {camera_url}")
-            #     continue
-            
-            # encoded_frame = base64.b64encode(buffer).decode("utf-8")
             print('encoded_framee',encoded_frame)
             try:
                 await websocket.send(encoded_frame)
             except websockets.exceptions.ConnectionClosed as e:
-                print(f"⚠️ Connection closed: {e}")
+                print(f"Connection closed: {e}")
                 break
 
             await asyncio.sleep(0.03)  # approx 30 FPS
 
     except websockets.exceptions.ConnectionClosedError as e:
-        print(f"⚠️ Client disconnected with protocol error: {e}")
+        print(f"Client disconnected with protocol error: {e}")
         await asyncio.sleep(2)  # Chờ 2 giây trước khi kết nối lại
         asyncio.create_task(video_stream(websocket, camera_url, targets, names, schedule_id))  # Thử lại
     finally:
         cap.release()
-        print(f"🔻 Closing video stream from {camera_url}")
+        print(f"Closing video stream from {camera_url}")
 
 # ================================================================
 # START MULTIPLE WEBSOCKET SERVERS FOR EACH CAMERA
@@ -215,7 +209,7 @@ async def video_stream(websocket,path):
 
 
 async def main():
-    print("🚀 Khởi động WebSocket server duy nhất trên ws://0.0.0.0:8765")
+    print("Khởi động WebSocket server duy nhất trên ws://0.0.0.0:8765")
     async with serve(video_stream, "0.0.0.0", 11000):
         await asyncio.Future()
 
@@ -224,4 +218,4 @@ if __name__ == "__main__":
 
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("👋 Server stopped manually.")
+        print("Server stopped manually.")

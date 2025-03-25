@@ -123,14 +123,14 @@ def process_frame(frame, targets, names,schedule_id):
                         cv2.imwrite(image_path, processed_frame)
                         print(f"📸 Ảnh lưu thành công tại: {image_path}")
                     except Exception as e:
-                        print(f"❌ Lỗi khi lưu ảnh: {e}")
+                        print(f"Lỗi khi lưu ảnh: {e}")
 
                 attencace_student(schedule_id=schedule_id,student_id=student_id,image_path=image_path)
                 detected_student_ids.add(student_id)
 
             return processed_frame, json.dumps(result)
     except Exception as e:
-        print(f"❌ Error detecting face: {e}")
+        print(f"Error detecting face: {e}")
 
     return frame, "[]"
 
@@ -142,14 +142,14 @@ async def video_stream(websocket, camera_url, targets, names,schedule_id):
     cap = cv2.VideoCapture(0)
     
     if not cap.isOpened():
-        print(f"❌ Error: Cannot open video stream {camera_url}")
+        print(f"Error: Cannot open video stream {camera_url}")
         return
 
     try:
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret or frame is None or frame.size == 0:
-                print(f"⚠️ Warning: Empty frame captured from {camera_url}; skipping")
+                print(f"Warning: Empty frame captured from {camera_url}; skipping")
                 continue
             rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
             processed_frame, json_result = process_frame(frame=rotated_frame, targets=targets, names=names,schedule_id=schedule_id)
@@ -157,30 +157,30 @@ async def video_stream(websocket, camera_url, targets, names,schedule_id):
 
             success, buffer = cv2.imencode(".jpg", processed_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 40])
             if not success:
-                print(f"❌ Error: Failed to encode image from {camera_url}")
+                print(f"Error: Failed to encode image from {camera_url}")
                 continue
 
             encoded_frame = base64.b64encode(buffer).decode("utf-8")
             try:
                 await websocket.send(encoded_frame)
             except websockets.exceptions.ConnectionClosed as e:
-                print(f"⚠️ Connection closed: {e}")
+                print(f"Connection closed: {e}")
                 break
 
             await asyncio.sleep(0.03)  # approx 30 FPS
 
     except websockets.exceptions.ConnectionClosedError as e:
-        print(f"⚠️ Client disconnected with protocol error: {e}")
+        print(f"Client disconnected with protocol error: {e}")
         await asyncio.sleep(2)  # Chờ 2 giây trước khi kết nối lại
         asyncio.create_task(video_stream(websocket, camera_url, targets, names, schedule_id))  # Thử lại
     finally:
         cap.release()
-        print(f"🔻 Closing video stream from {camera_url}")
+        print(f"Closing video stream from {camera_url}")
 
 # ================================================================
 # START MULTIPLE WEBSOCKET SERVERS FOR EACH CAMERA
 async def start_server( camera_url, class_id,schedule_id, port):
-    print(f"🚀 Starting WebSocket server for {camera_url} on ws://0.0.0.0:{port}")
+    print(f"Starting WebSocket server for {camera_url} on ws://0.0.0.0:{port}")
     targets,names=get_pytorch_embedding(class_id)
     init_attendace(schedule_id)
     print("init_attendace successful")

@@ -22,7 +22,7 @@ def get_all_classes_in_next_2_hours():
     datetime_now=datetime.now()
     two_hours_later=datetime_now+ timedelta(hours=2)
     query="""
-       SELECT s.schedule_id, s.class_id, s.classroom_id, cam.camera_ip, cam.socket_path 
+       SELECT s.schedule_id, s.class_id, s.classroom_id, cam.camera_URL, cam.socket_path 
         FROM schedules s
         JOIN classes c ON s.class_id = c.class_id
 		JOIN cameras cam ON cam.classroom_id=cam.classroom_id
