@@ -187,6 +187,7 @@ def attencace_student(schedule_id,student_id,image_path):
     
     
 def init_attendace(schedule_id):
+    print(f"📋 Đang khởi tạo điểm danh cho schedule_id = {schedule_id}")
     query="""
         INSERT INTO attendance (schedule_id, student_id, status, attendance_time)
         SELECT s.schedule_id, cs.student_id, 'absent', NULL

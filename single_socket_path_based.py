@@ -159,7 +159,7 @@ async def video_stream(websocket,path):
     print(f"New WebSocket connection from {websocket.remote_address} for camera: {camera_url}")
     # cap = cv2.VideoCapture('http://192.168.1.150:81/stream')
     # cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture(camera_url)
+    cap = cv2.VideoCapture(0)
     # dt.time.sleep(2)  # cho ESP32-CAM kịp gửi frame
     if not cap.isOpened():
         print(f"Error: Cannot open video stream {camera_url}")
@@ -209,6 +209,9 @@ async def video_stream(websocket,path):
 
 
 async def main():
+    for classroom_id, info in classrooms_info.items():
+        print(f"🔁 Init attendance cho classroom {classroom_id}")
+        init_attendace(info["schedule_id"])
     print("Khởi động WebSocket server duy nhất trên ws://0.0.0.0:8765")
     async with serve(video_stream, "0.0.0.0", 11000):
         await asyncio.Future()
