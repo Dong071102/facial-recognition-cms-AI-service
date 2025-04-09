@@ -9,13 +9,13 @@ Generate the face bank
 
 import sys
 import os
-sys.path.append(os.path.join(sys.path[0], 'MTCNN'))
+sys.path.append(os.path.join(sys.path[0],'src', 'MTCNN'))
 from MTCNN import create_mtcnn_net
 from utils.align_trans import *
 import numpy as np
 from torchvision import transforms as trans
 import torch
-from face_model import MobileFaceNet, l2_norm
+from src.face_model import MobileFaceNet, l2_norm
 from pathlib import Path
 import cv2
 

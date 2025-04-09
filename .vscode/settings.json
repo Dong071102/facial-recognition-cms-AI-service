@@ -19,5 +19,8 @@
         "titleBar.inactiveForeground": "#e7e7e799"
     },
     "peacock.color": "4081b2",
-    "idf.pythonInstallPath": "/home/dong/anaconda3/bin/python"
+    "idf.pythonInstallPath": "/home/dong/anaconda3/bin/python",
+    "python.analysis.extraPaths": [
+        "./src"
+    ]
 }

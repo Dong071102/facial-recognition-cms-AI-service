@@ -3,7 +3,7 @@ import torch
 from config.db_config import DB_HOST, PORT, DB_DATABASE, DB_USER, DB_PASSWORD
 from datetime import datetime, timedelta
 import uuid
-import utils.convert_type as convert_type
+import src.utils.convert_type as convert_type
 import numpy as np
 from pgvector.psycopg2 import register_vector
 def get_connection():
