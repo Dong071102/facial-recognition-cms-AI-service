@@ -56,7 +56,7 @@ detected_student_ids = set()
 #=================================================================
 #===================SAVE THE IMAGE FOLDER=========================
 def create_evidence_image_url(schedule_id,student_id):
-    BASE_VIDEO_DIR = "evidence_image"
+    BASE_VIDEO_DIR = "src/evidence_image"
     today = datetime.now()  # get the current date time
     date_folder = today.strftime("%Y/%m/%d")  # create folder with struct YYYY/MM/DD
 
@@ -81,9 +81,9 @@ def process_frame(frame, targets, names,schedule_id):
     print('names',names)
     try:
         bboxes, landmarks = create_mtcnn_net(frame, mini_face=20, device=device,
-                                             p_model_path='MTCNN/weights/pnet_Weights',
-                                             r_model_path='MTCNN/weights/rnet_Weights',
-                                             o_model_path='MTCNN/weights/onet_Weights')
+                                             p_model_path='src/MTCNN/weights/pnet_Weights',
+                                             r_model_path='src/MTCNN/weights/rnet_Weights',
+                                             o_model_path='src/MTCNN/weights/onet_Weights')
         if len(bboxes) > 0:
 
             faces = [frame[int(b[1]):int(b[3]), int(b[0]):int(b[2])] for b in bboxes]
@@ -175,7 +175,7 @@ async def video_stream(websocket,path):
                 print(f"Warning: Empty frame captured from {camera_url}; skipping")
                 continue
             rotated_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-            processed_frame, json_result = process_frame(frame=rotated_frame, targets=targets, names=names,schedule_id=schedule_id)
+            processed_frame, json_result = process_frame(frame=frame, targets=targets, names=names,schedule_id=schedule_id)
             processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
             resized_frame = cv2.resize(processed_frame, (240, 320))  # (width, height)
             image = Image.fromarray(resized_frame)
@@ -212,7 +212,7 @@ async def video_stream(websocket,path):
 
 async def main():
     for classroom_id, info in classrooms_info.items():
-        print(f"🔁 Init attendance cho classroom {classroom_id}")
+        print(f"Init attendance cho classroom {classroom_id}")
         init_attendace(info["schedule_id"])
     print("Khởi động WebSocket server duy nhất trên ws://0.0.0.0:8765")
     async with serve(video_stream, "0.0.0.0", 11000):

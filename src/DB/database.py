@@ -1,6 +1,6 @@
 import psycopg2
 import torch
-from config.db_config import DB_HOST, PORT, DB_DATABASE, DB_USER, DB_PASSWORD
+from src.config.db_config import DB_HOST, PORT, DB_DATABASE, DB_USER, DB_PASSWORD
 from datetime import datetime, timedelta
 import uuid
 import src.utils.convert_type as convert_type
