@@ -1,6 +1,6 @@
 # Human Face Attendance Service
 
-**Human Counter CMS** là một dịch vụ điểm danh thông minh bằng cách **nhận diện khuôn mặt thời gian thực** qua **camera IP hoặc webcam**, sử dụng các công nghệ như:
+**Human Face Attendance Service** là một dịch vụ điểm danh thông minh bằng cách **nhận diện khuôn mặt thời gian thực** qua **camera IP hoặc webcam**, sử dụng các công nghệ như:
 
 - 🧠 **MobileFaceNet** – Nhận diện khuôn mặt chính xác, nhẹ.
 - 📦 **MTCNN** – Phát hiện khuôn mặt nhanh và chính xác.
