@@ -1,4 +1,4 @@
-# Facial recognition service
+# 😳 Facial recognition service
 
 **Facial recognition service** là một dịch vụ điểm danh thông minh bằng cách **nhận diện khuôn mặt thời gian thực** qua **camera IP hoặc webcam**, sử dụng các công nghệ như:
 
