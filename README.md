@@ -1,11 +1,10 @@
-# Human Face Attendance Service
+# Facial recognition service
 
-**Human Face Attendance Service** là một dịch vụ điểm danh thông minh bằng cách **nhận diện khuôn mặt thời gian thực** qua **camera IP hoặc webcam**, sử dụng các công nghệ như:
+**Facial recognition service** là một dịch vụ điểm danh thông minh bằng cách **nhận diện khuôn mặt thời gian thực** qua **camera IP hoặc webcam**, sử dụng các công nghệ như:
 
 - 🧠 **MobileFaceNet** – Nhận diện khuôn mặt chính xác, nhẹ.
 - 📦 **MTCNN** – Phát hiện khuôn mặt nhanh và chính xác.
 - 📹 **OpenCV + WebSocket** – Stream video và xử lý real-time.
-- 🔥 **PyTorch, YOLO, base64 encoded image**.
 
 ---
 
